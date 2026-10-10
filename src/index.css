@@ -325,3 +325,97 @@ div[class*="bg-[#0d0919]"] > .halftone-bg {
     font-size: 3.5rem !important;
   }
 }
+
+/* ======================================================== */
+/* SoloSetup 頁面放大（與大廳同樣風格）                       */
+/* ======================================================== */
+@media (min-width: 1280px) {
+  /* 用 :has(.grid-cols-2) 精準鎖定 SoloSetup 的難度按鈕網格 */
+  div[class*="bg-[#1a1530]"]:has(.grid-cols-2) {
+    font-size: 22px !important;
+  }
+
+  /* 返回按鈕 */
+  div[class*="bg-[#1a1530]"]:has(.grid-cols-2) > .comic-border {
+    padding: 0.8rem 1.6rem !important;
+    font-size: 1.2rem !important;
+  }
+
+  /* 練習模式 / 對戰 AI 切換按鈕 */
+  div[class*="bg-[#1a1530]"]:has(.grid-cols-2) .comic-border {
+    padding: 1.2rem 2rem !important;
+    font-size: 1.4rem !important;
+  }
+
+  /* 選擇難度標題 */
+  div[class*="bg-[#1a1530]"]:has(.grid-cols-2) .font-manga.text-2xl {
+    font-size: 2rem !important;
+  }
+
+  /* 難度按鈕本體 */
+  div[class*="bg-[#1a1530]"]:has(.grid-cols-2) .comic-border-thick {
+    padding: 2rem 1.8rem !important;
+    border-width: 6px !important;
+    box-shadow: 9px 9px 0 #000 !important;
+  }
+
+  /* 難度圖示（🙂 😤 🔥 💀） */
+  div[class*="bg-[#1a1530]"]:has(.grid-cols-2) .comic-border-thick .text-3xl {
+    font-size: 3rem !important;
+  }
+
+  /* 難度文字（簡單 / 普通 / 困難 / 地獄） */
+  div[class*="bg-[#1a1530]"]:has(.grid-cols-2) .comic-border-thick .font-manga.text-lg {
+    font-size: 1.6rem !important;
+  }
+}
+
+/* ======================================================== */
+/* OnlineLobby 頁面放大（與大廳同樣風格）                     */
+/* ======================================================== */
+@media (min-width: 1280px) {
+  /* 用 bg-[#101225] 精準鎖定 OnlineLobby */
+  div[class*="bg-[#101225]"] {
+    font-size: 22px !important;
+  }
+
+  /* 返回按鈕 */
+  div[class*="bg-[#101225]"] > .comic-border {
+    padding: 0.8rem 1.6rem !important;
+    font-size: 1.2rem !important;
+  }
+
+  /* 暱稱輸入卡、房間卡、加入房卡 */
+  div[class*="bg-[#101225]"] .comic-border-thick {
+    padding: 3rem 2.5rem !important;
+    border-width: 6px !important;
+    box-shadow: 9px 9px 0 #000 !important;
+  }
+
+  /* 暱稱輸入框 */
+  div[class*="bg-[#101225]"] input {
+    font-size: 1.6rem !important;
+    padding: 1rem 1.5rem !important;
+    max-width: 100% !important;
+  }
+
+  /* 卡片的標題文字 */
+  div[class*="bg-[#101225]"] .font-manga.text-lg {
+    font-size: 1.5rem !important;
+  }
+
+  /* 大按鈕文字（建立房間 / 加入房間） */
+  div[class*="bg-[#101225]"] .font-manga.text-2xl {
+    font-size: 1.8rem !important;
+  }
+
+  /* 房間代碼顯示（5 位數大字） */
+  div[class*="bg-[#101225]"] .font-manga.text-5xl {
+    font-size: 4rem !important;
+  }
+
+  /* 小字（例如 0/12） */
+  div[class*="bg-[#101225]"] .font-manga.text-xs {
+    font-size: 0.9rem !important;
+  }
+}
