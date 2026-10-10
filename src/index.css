@@ -215,31 +215,35 @@ div[class*="bg-[#0d0919]"] > .halftone-bg {
 
 @media (min-width: 1280px) {
   
-  /* 使用 :has() 精準鎖定「有大廳按鈕」的頁面才套用放大設定 */
-  /* 大廳的按鈕容器有 .mt-16.flex.flex-1 這個特徵 */
-  
-  /* 1. 基礎字體放大：只在大廳頁面生效 */
+  /* 1. 基礎字體放大（維持原樣） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) {
     font-size: 24px !important;
   }
 
-  /* 2. 左上方 Logo：只在大廳頁面放大 */
+  /* 2. 左上方 Logo（保留 scale，但加入 GPU 渲染提示讓文字清晰） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .flex.w-full.max-w-6xl > div:first-child {
     transform: scale(1.5) !important;
     transform-origin: top left !important;
     margin-top: 2vh !important;
     margin-left: 2vw !important;
+    /* 加入這三行讓文字清晰 */
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    will-change: transform;
   }
 
-  /* 3. 右上方語言列：只在大廳頁面放大 */
+  /* 3. 右上方語言列（同上） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .flex.w-full.max-w-6xl > div:last-child {
     transform: scale(1.5) !important;
     transform-origin: top right !important;
     margin-top: 2vh !important;
     margin-right: 2vw !important;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    will-change: transform;
   }
 
-  /* 4. 中間按鈕容器：只在大廳頁面生效 */
+  /* 4. 中間按鈕容器（維持原樣） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .mt-16.flex.flex-1 {
     gap: 4rem !important;
     margin-top: 5vh !important;
@@ -247,47 +251,49 @@ div[class*="bg-[#0d0919]"] > .halftone-bg {
     align-items: center !important;
   }
 
-  /* 5. 按鈕包裹層：只在大廳頁面生效 */
+  /* 5. 按鈕包裹層（維持原樣） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .mt-16.flex.flex-1 > div {
     flex: 1 1 0 !important;
     max-width: 550px !important;
   }
 
-  /* 6. 大廳按鈕本體：只在大廳頁面生效 */
+  /* 6. 大廳按鈕本體：關鍵改動！移除 filter，其他全部保留 */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick {
     width: 100% !important;
     padding: 3.5rem 4rem !important;
     min-width: 400px !important;
     border-width: 8px !important;
     box-shadow: 12px 12px 0 #000 !important;
-    filter: saturate(1.5) contrast(1.15) !important;
+    /* ❌ 移除了 filter: saturate(1.5) contrast(1.15) —— 這是文字模糊的元兇！ */
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-  /* 7. 移除大廳按鈕的文字陰影 */
+  /* 7. 移除大廳按鈕的文字陰影（維持原樣） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick * {
     text-shadow: none !important;
   }
 
-   /* 8. 暴力放大按鈕內「所有」文字，並強制加粗、不換行 */
+  /* 8. 按鈕內文字：保留 12rem，但加入 GPU 渲染提示 */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick > div {
-    font-size: 12rem !important;        /* 超大字體，填滿按鈕 */
-    font-weight: 900 !important;         /* 極致加粗 */
-    white-space: nowrap !important;      /* 絕對不許斷行 */
-    text-shadow: none !important;        /* 保持無陰影 */
-    line-height: 1.2 !important;         /* 避免字體放大後行高太高 */
-    margin-bottom: 0.5rem !important;    /* 拉開主副標題距離 */
+    font-size: 12rem !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+    text-shadow: none !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.5rem !important;
+    /* 加入這行讓大字清晰 */
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* 9. 針對按鈕內的副標題或小字稍微縮小一點，形成主次對比 */
+  /* 9. 副標題（維持原樣） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick > div:last-child {
-    font-size: 1.8rem !important;        /* 副標題尺寸 */
+    font-size: 1.8rem !important;
   }
 
-    /* 10. 大廳底部立繪放大 */
+  /* 10. 大廳底部立繪（維持原樣） */
   div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) div[class*="pointer-events-none"] img {
     height: clamp(350px, 48vh, 550px) !important;
     bottom: -20px !important;
