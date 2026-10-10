@@ -43,6 +43,19 @@ interface RemoteSnapshot {
   pendingGarbageCount: number;
   gameOver: boolean;
   nickname?: string;
+  myPing?: number;
+}
+
+function pingColor(value: number | null): string {
+  if (value === null) return 'text-gray-500';
+  if (value < 80) return 'text-green-400';
+  if (value < 150) return 'text-yellow-400';
+  return 'text-red-400';
+}
+
+function formatPing(value: number | null): string {
+  if (value === null) return '---';
+  return `${value}ms`;
 }
 
 export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar, opponentChar, myNickname, onGameOver, onQuit }: Props) {
@@ -52,6 +65,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
   const [myFlash, setMyFlash] = useState(false);
   const [remoteNickname, setRemoteNickname] = useState<string>('');
   const [ping, setPing] = useState<number | null>(null);
+  const [remotePing, setRemotePing] = useState<number | null>(null);
   const finishedRef = useRef(false);
 
   const engineRef = useRef<TetrisEngine | null>(null);
@@ -65,6 +79,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
   const countdownRef = useRef(3);
   const keymapRef = useRef(loadKeyMap());
   const pingTimerRef = useRef<number>(0);
+  const pingValueRef = useRef<number | null>(null);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -124,6 +139,9 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
           if ((msg as any).nickname) {
             setRemoteNickname((msg as any).nickname);
           }
+          if (typeof (msg as any).myPing === 'number') {
+            setRemotePing((msg as any).myPing);
+          }
         } else if (msg.type === 'gameover') {
           if (!finishedRef.current) {
             finishMatch('win');
@@ -135,6 +153,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
           // 收到對手的 Pong，計算延遲
           const rtt = Date.now() - msg.timestamp;
           setPing(rtt);
+          pingValueRef.current = rtt;
         }
       };
       peer.onDisconnected = () => {
@@ -265,7 +284,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
             peer.send({ type: 'ping', timestamp: Date.now() });
           }
 
-          // 狀態同步（每 90ms 一次）
+          // 狀態同步（每 90ms 一次），把「自己的 Ping」一起傳給對手
           lastSendRef.current += dt;
           if (lastSendRef.current >= 90) {
             lastSendRef.current = 0;
@@ -284,7 +303,8 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
               pendingGarbageCount: info.pendingGarbageCount,
               gameOver: engine.gameOver,
               nickname: myNickname || pChar.name,
-            });
+              myPing: pingValueRef.current ?? undefined,
+            } as any);
           }
         }
       }
@@ -438,35 +458,42 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
 
       {/* 底部 Puyo Puyo 風格狀態欄 */}
       <div className="fixed bottom-0 left-0 right-0 z-40 flex h-20 items-center justify-between border-t-4 border-black bg-[#1a1a2e]/95 px-4 md:px-12 font-manga shadow-[0_-4px_20px_rgba(0,0,0,0.8)] backdrop-blur-md">
+        {/* 左側：玩家資訊 + 自己 Ping */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-full border-2 border-blue-500 bg-blue-900/50 text-xl text-blue-300">
             P1
           </div>
           <div>
-            <div className="text-xs text-blue-300 md:text-sm truncate max-w-[100px] md:max-w-[200px]">{displayPlayerName}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-blue-300 md:text-sm truncate max-w-[100px] md:max-w-[200px]">{displayPlayerName}</span>
+              {mode === 'online' && (
+                <span className={`font-manga text-[10px] md:text-xs ${pingColor(ping)}`}>
+                  {formatPing(ping)}
+                </span>
+              )}
+            </div>
             <div className="text-2xl font-bold tracking-wider text-yellow-300 drop-shadow-[0_0_8px_rgba(255,255,0,0.5)] md:text-4xl">
               {myScoreStr}
             </div>
           </div>
         </div>
 
+        {/* 中間：VS */}
         <div className="flex flex-col items-center justify-center">
           <div className="text-2xl font-bold text-gray-400 md:text-3xl italic">VS</div>
-          {mode === 'online' && (
-            <div className={`mt-1 font-manga text-xs md:text-sm ${
-              ping === null ? 'text-gray-500' :
-              ping < 80 ? 'text-green-400' :
-              ping < 150 ? 'text-yellow-400' :
-              'text-red-400'
-            }`}>
-              {ping === null ? 'PING: ---' : `PING: ${ping}ms`}
-            </div>
-          )}
         </div>
 
+        {/* 右側：對手資訊 + 對手 Ping */}
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <div className="text-xs text-red-300 md:text-sm truncate max-w-[100px] md:max-w-[200px]">{displayOpponentName}</div>
+            <div className="flex items-center justify-end gap-2">
+              {mode === 'online' && (
+                <span className={`font-manga text-[10px] md:text-xs ${pingColor(remotePing)}`}>
+                  {formatPing(remotePing)}
+                </span>
+              )}
+              <span className="text-xs text-red-300 md:text-sm truncate max-w-[100px] md:max-w-[200px]">{displayOpponentName}</span>
+            </div>
             <div className="text-2xl font-bold tracking-wider text-orange-400 drop-shadow-[0_0_8px_rgba(255,165,0,0.5)] md:text-4xl">
               {oppScoreStr}
             </div>
