@@ -503,3 +503,34 @@ div[class*="bg-[#0d0919]"] > .halftone-bg {
     font-size: 1.4rem !important;
   }
 }
+
+/* ======================================================== */
+/* 角色立繪待機動畫：呼吸 + 輕微搖擺                          */
+/* ======================================================== */
+
+@keyframes character-idle {
+  0%   { transform: translateY(0)      rotate(-1deg)   scaleY(1); }
+  20%  { transform: translateY(-1.5px) rotate(-0.5deg) scaleY(1.006); }
+  50%  { transform: translateY(-3px)   rotate(1deg)    scaleY(1.012); }
+  80%  { transform: translateY(-1.5px) rotate(0.5deg)  scaleY(1.006); }
+  100% { transform: translateY(0)      rotate(-1deg)   scaleY(1); }
+}
+
+/* 遊戲畫面內的所有角色立繪（玩家 + 對手） */
+div[class*="bg-[#0d0919]"] img {
+  transform-origin: bottom center;
+  animation: character-idle 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* 讓對手的動畫延遲一半，雙方看起來更自然（不同步） */
+div[class*="bg-[#0d0919]"] .opacity-90 img {
+  animation-delay: -1.8s;
+}
+
+/* 尊重使用者的「減少動畫」系統偏好 */
+@media (prefers-reduced-motion: reduce) {
+  div[class*="bg-[#0d0919]"] img {
+    animation: none;
+  }
+}
