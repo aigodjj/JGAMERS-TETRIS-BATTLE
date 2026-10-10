@@ -147,10 +147,8 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
             finishMatch('win');
           }
         } else if (msg.type === 'ping') {
-          // 收到對手的 Ping，立刻回傳 Pong
           peer?.send({ type: 'pong', timestamp: msg.timestamp });
         } else if (msg.type === 'pong') {
-          // 收到對手的 Pong，計算延遲
           const rtt = Date.now() - msg.timestamp;
           setPing(rtt);
           pingValueRef.current = rtt;
@@ -183,27 +181,28 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
     return () => clearInterval(iv);
   }, []);
 
-  // --- keyboard input (支援自訂按鍵) ---
+  // --- keyboard input (支援自訂按鍵 + 大小寫自動轉換) ---
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const engine = engineRef.current;
       if (!engine || finishedRef.current) return;
       const km = keymapRef.current;
+      const key = e.key.toLowerCase();
 
       if (
-        e.key === km.left ||
-        e.key === km.right ||
-        e.key === km.softDrop ||
-        e.key === km.hardDrop ||
-        e.key === km.rotateCW ||
-        e.key === km.rotateCCW ||
-        e.key === km.hold ||
+        key === km.left ||
+        key === km.right ||
+        key === km.softDrop ||
+        key === km.hardDrop ||
+        key === km.rotateCW ||
+        key === km.rotateCCW ||
+        key === km.hold ||
         e.code === 'Space'
       ) {
         e.preventDefault();
       }
 
-      if (e.key === km.pause) {
+      if (key === km.pause) {
         setPaused((p) => !p);
         return;
       }
@@ -211,26 +210,26 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
       if (pausedRef.current || countdownRef.current > 0) return;
 
       const noRepeatKeys = [km.hardDrop, km.rotateCW, km.rotateCCW, km.hold];
-      if (e.repeat && noRepeatKeys.includes(e.key)) return;
+      if (e.repeat && noRepeatKeys.includes(key)) return;
 
-      if (e.key === km.left) {
+      if (key === km.left) {
         engine.setInput('left', true);
         playMoveSFX();
-      } else if (e.key === km.right) {
+      } else if (key === km.right) {
         engine.setInput('right', true);
         playMoveSFX();
-      } else if (e.key === km.softDrop) {
+      } else if (key === km.softDrop) {
         engine.setInput('softDrop', true);
-      } else if (e.key === km.hardDrop) {
+      } else if (key === km.hardDrop) {
         engine.hardDrop();
         playHardDropSFX();
-      } else if (e.key === km.rotateCW) {
+      } else if (key === km.rotateCW) {
         engine.rotate(1);
         playRotateSFX();
-      } else if (e.key === km.rotateCCW) {
+      } else if (key === km.rotateCCW) {
         engine.rotate(-1);
         playRotateSFX();
-      } else if (e.key === km.hold) {
+      } else if (key === km.hold) {
         engine.hold();
         playHoldSFX();
       }
@@ -240,11 +239,12 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
       const engine = engineRef.current;
       if (!engine) return;
       const km = keymapRef.current;
-      if (e.key === km.left) {
+      const key = e.key.toLowerCase();
+      if (key === km.left) {
         engine.setInput('left', false);
-      } else if (e.key === km.right) {
+      } else if (key === km.right) {
         engine.setInput('right', false);
-      } else if (e.key === km.softDrop) {
+      } else if (key === km.softDrop) {
         engine.setInput('softDrop', false);
       }
     };
