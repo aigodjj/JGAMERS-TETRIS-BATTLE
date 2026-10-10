@@ -534,3 +534,66 @@ div[class*="bg-[#0d0919]"] .opacity-90 img {
     animation: none;
   }
 }
+
+/* ======================================================== */
+/* 選角頁面：角色立繪待機動畫                                 */
+/* ======================================================== */
+
+@keyframes select-idle {
+  0%   { transform: translateY(0)      rotate(-0.8deg) scaleY(1); }
+  25%  { transform: translateY(-2px)   rotate(-0.3deg) scaleY(1.008); }
+  50%  { transform: translateY(-4px)   rotate(0.8deg)  scaleY(1.015); }
+  75%  { transform: translateY(-2px)   rotate(0.3deg)  scaleY(1.008); }
+  100% { transform: translateY(0)      rotate(-0.8deg) scaleY(1); }
+}
+
+/* 選角頁面：1P 框的大立繪（h-64 / h-80 那個容器） */
+div[class*="bg-[#140d24]"] .flex.h-64 img,
+div[class*="bg-[#140d24]"] .flex.h-80 img,
+div[class*="bg-[#140d24]"] .sm\:h-80 img {
+  transform-origin: bottom center;
+  animation: select-idle 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* 選角頁面：2P 框的立繪動畫延遲半個週期，不同步 */
+div[class*="bg-[#140d24]"] .comic-border-thick:last-child .flex img {
+  animation-delay: -1.8s;
+}
+
+
+/* ======================================================== */
+/* 主頁（大廳）：底部浮動角色立繪待機動畫                     */
+/* ======================================================== */
+
+/* ⚠️ 主頁的立繪用了內聯的 transform: rotate()，所以我們改用 CSS 的獨立
+   translate 屬性做動畫，避免覆蓋掉內聯的旋轉角度。 */
+
+@keyframes menu-float {
+  0%   { translate: 0 0; }
+  50%  { translate: 0 -6px; }
+  100% { translate: 0 0; }
+}
+
+div[class*="bg-[#1a1530]"] div[class*="pointer-events-none"] img {
+  animation: menu-float 4s ease-in-out infinite;
+  will-change: translate;
+}
+
+/* 讓每個角色的漂浮週期略有不同，看起來更自然 */
+div[class*="bg-[#1a1530]"] div[class*="pointer-events-none"] img:nth-child(1) { animation-delay: 0s; }
+div[class*="bg-[#1a1530]"] div[class*="pointer-events-none"] img:nth-child(2) { animation-delay: -0.7s; }
+div[class*="bg-[#1a1530]"] div[class*="pointer-events-none"] img:nth-child(3) { animation-delay: -1.4s; }
+div[class*="bg-[#1a1530]"] div[class*="pointer-events-none"] img:nth-child(4) { animation-delay: -2.1s; }
+div[class*="bg-[#1a1530]"] div[class*="pointer-events-none"] img:nth-child(5) { animation-delay: -2.8s; }
+
+
+/* ======================================================== */
+/* 尊重使用者的「減少動態效果」系統偏好                       */
+/* ======================================================== */
+@media (prefers-reduced-motion: reduce) {
+  div[class*="bg-[#140d24]"] img,
+  div[class*="bg-[#1a1530]"] div[class*="pointer-events-none"] img {
+    animation: none;
+  }
+}
