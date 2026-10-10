@@ -18,11 +18,15 @@ export type NetMessage =
       pendingGarbageCount: number;
       gameOver: boolean;
       nickname?: string;
+      myPing?: number;
     }
   | { type: 'attack'; lines: number; holeCols: number[]; hard: boolean }
   | { type: 'gameover'; stats: any }
   | { type: 'ping'; timestamp: number }
-  | { type: 'pong'; timestamp: number };
+  | { type: 'pong'; timestamp: number }
+  | { type: 'rematch-request' }
+  | { type: 'rematch-accept' }
+  | { type: 'rematch-decline' };
 
 const ROOM_PREFIX = 'jgamers-tetris-';
 
