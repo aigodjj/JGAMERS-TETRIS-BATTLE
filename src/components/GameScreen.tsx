@@ -162,7 +162,6 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
       if (!engine || finishedRef.current) return;
       const km = keymapRef.current;
 
-      // 阻止瀏覽器預設行為
       if (
         e.key === km.left ||
         e.key === km.right ||
@@ -176,7 +175,6 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
         e.preventDefault();
       }
 
-      // 暫停鍵永遠有效
       if (e.key === km.pause) {
         setPaused((p) => !p);
         return;
@@ -184,7 +182,6 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
 
       if (pausedRef.current || countdownRef.current > 0) return;
 
-      // 部分按鍵需忽略 e.repeat
       const noRepeatKeys = [km.hardDrop, km.rotateCW, km.rotateCCW, km.hold];
       if (e.repeat && noRepeatKeys.includes(e.key)) return;
 
