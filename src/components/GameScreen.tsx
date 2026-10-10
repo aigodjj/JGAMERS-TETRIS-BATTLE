@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TetrisEngine } from '../engine/TetrisEngine';
 import { AIController, type AIDifficulty } from '../engine/ai';
 import { getCharacter } from '../engine/characters';
+import { loadKeyMap } from '../engine/storage';
 import type { CharacterId, EngineStats } from '../engine/types';
 import type { NetPeer, NetMessage } from '../net/peer';
 import BoardView from './BoardView';
@@ -41,7 +42,7 @@ interface RemoteSnapshot {
   nextTypes: string[];
   pendingGarbageCount: number;
   gameOver: boolean;
-  nickname?: string; // 新增：網路傳輸的暱稱
+  nickname?: string;
 }
 
 export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar, opponentChar, myNickname, onGameOver, onQuit }: Props) {
@@ -49,7 +50,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
   const [paused, setPaused] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [myFlash, setMyFlash] = useState(false);
-  const [remoteNickname, setRemoteNickname] = useState<string>(''); // 新增：對手的暱稱
+  const [remoteNickname, setRemoteNickname] = useState<string>('');
   const finishedRef = useRef(false);
 
   const engineRef = useRef<TetrisEngine | null>(null);
@@ -61,6 +62,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
   const lastSendRef = useRef<number>(0);
   const pausedRef = useRef(false);
   const countdownRef = useRef(3);
+  const keymapRef = useRef(loadKeyMap());
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -117,7 +119,6 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
           engineRef.current?.receiveGarbage(msg.lines, msg.holeCols, msg.hard);
         } else if (msg.type === 'state') {
           remoteRef.current = msg as unknown as RemoteSnapshot;
-          // 接收對手的暱稱
           if ((msg as any).nickname) {
             setRemoteNickname((msg as any).nickname);
           }
@@ -132,7 +133,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
       };
     }
 
-   return () => {
+    return () => {
       aiRef.current?.destroy();
       if (peer) {
         peer.onData = null;
@@ -154,71 +155,75 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
     return () => clearInterval(iv);
   }, []);
 
-  // --- keyboard input ---
+  // --- keyboard input (支援自訂按鍵) ---
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const engine = engineRef.current;
       if (!engine || finishedRef.current) return;
-      if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space', ' '].includes(e.key) || e.code === 'Space') {
+      const km = keymapRef.current;
+
+      // 阻止瀏覽器預設行為
+      if (
+        e.key === km.left ||
+        e.key === km.right ||
+        e.key === km.softDrop ||
+        e.key === km.hardDrop ||
+        e.key === km.rotateCW ||
+        e.key === km.rotateCCW ||
+        e.key === km.hold ||
+        e.code === 'Space'
+      ) {
         e.preventDefault();
       }
-      if (e.key === 'Escape') {
+
+      // 暫停鍵永遠有效
+      if (e.key === km.pause) {
         setPaused((p) => !p);
         return;
       }
+
       if (pausedRef.current || countdownRef.current > 0) return;
-      if (e.repeat && !['ArrowLeft', 'ArrowRight', 'ArrowDown', 's', 'S'].includes(e.key)) return;
-            switch (e.key) {
-        case 'ArrowLeft':
-          engine.setInput('left', true);
-          playMoveSFX(); // 加這行
-          break;
-        case 'ArrowRight':
-          engine.setInput('right', true);
-          playMoveSFX(); // 加這行
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          engine.setInput('softDrop', true);
-          break;
-        case 'ArrowUp':
-          if (!e.repeat) { engine.rotate(1); playRotateSFX(); } // 加 playRotateSFX()
-          break;
-        case 'z':
-        case 'Z':
-          if (!e.repeat) { engine.rotate(-1); playRotateSFX(); } // 加 playRotateSFX()
-          break;
-        case 'c':
-        case 'C':
-          if (!e.repeat) { engine.hold(); playHoldSFX(); } // 加 playHoldSFX()
-          break;
-        case ' ':
-          if (!e.repeat) { engine.hardDrop(); playHardDropSFX(); } // 加 playHardDropSFX()
-          break;
-        default:
-          break;
+
+      // 部分按鍵需忽略 e.repeat
+      const noRepeatKeys = [km.hardDrop, km.rotateCW, km.rotateCCW, km.hold];
+      if (e.repeat && noRepeatKeys.includes(e.key)) return;
+
+      if (e.key === km.left) {
+        engine.setInput('left', true);
+        playMoveSFX();
+      } else if (e.key === km.right) {
+        engine.setInput('right', true);
+        playMoveSFX();
+      } else if (e.key === km.softDrop) {
+        engine.setInput('softDrop', true);
+      } else if (e.key === km.hardDrop) {
+        engine.hardDrop();
+        playHardDropSFX();
+      } else if (e.key === km.rotateCW) {
+        engine.rotate(1);
+        playRotateSFX();
+      } else if (e.key === km.rotateCCW) {
+        engine.rotate(-1);
+        playRotateSFX();
+      } else if (e.key === km.hold) {
+        engine.hold();
+        playHoldSFX();
       }
     };
+
     const up = (e: KeyboardEvent) => {
       const engine = engineRef.current;
       if (!engine) return;
-      switch (e.key) {
-        case 'ArrowLeft':
-          engine.setInput('left', false);
-          break;
-        case 'ArrowRight':
-          engine.setInput('right', false);
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          engine.setInput('softDrop', false);
-          break;
-        default:
-          break;
+      const km = keymapRef.current;
+      if (e.key === km.left) {
+        engine.setInput('left', false);
+      } else if (e.key === km.right) {
+        engine.setInput('right', false);
+      } else if (e.key === km.softDrop) {
+        engine.setInput('softDrop', false);
       }
     };
+
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => {
@@ -264,7 +269,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
               nextTypes: engine.getNextPreview(4),
               pendingGarbageCount: info.pendingGarbageCount,
               gameOver: engine.gameOver,
-              nickname: myNickname || pChar.name, // 發送自己的暱稱
+              nickname: myNickname || pChar.name,
             });
           }
         }
@@ -283,7 +288,6 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
   const pChar = getCharacter(playerChar);
   const oChar = opponentChar ? getCharacter(opponentChar) : null;
 
-  // 顯示名稱：優先顯示暱稱，如果沒有則顯示角色名稱
   const displayPlayerName = myNickname || pChar.name;
   const displayOpponentName = remoteNickname || oChar?.name || '2P';
 
@@ -302,13 +306,12 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
       nextTypes: oppEngineRef.current.getNextPreview(4),
       pendingGarbageCount: oinfo.pendingGarbageCount,
       gameOver: oppEngineRef.current.gameOver,
-      nickname: '', // AI 沒有暱稱
+      nickname: '',
     };
   } else if (mode === 'online') {
     remoteInfo = remoteRef.current;
   }
 
-  // 分數格式化 (補零到 8 位數)
   const myScoreStr = engine.stats.score.toString().padStart(8, '0');
   const oppScoreStr = (remoteInfo?.score || 0).toString().padStart(8, '0');
 
@@ -326,13 +329,12 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
 
       <div className="relative z-10 mt-2 flex flex-wrap items-start justify-center gap-8 lg:gap-16">
 
-        {/* ===== 玩家區塊：[SidePanel + 下方立繪] [棋盤] ===== */}
+        {/* ===== 玩家區塊 ===== */}
         <div className={`flex items-start gap-2 ${myFlash ? 'animate-shake-sm' : ''}`}>
-          
+
           <div className="flex flex-col items-center">
             <SidePanel lang={lang} holdType={engine.holdType} nextTypes={engine.getNextPreview(4)} score={engine.stats.score} lines={engine.stats.linesCleared} combo={Math.max(engine.combo, 0)} accent={pChar.color} />
 
-            {/* 玩家立繪：SidePanel（分數/消行）的正下方 */}
             <div className="hidden md:block mt-2">
               <img
                 src={pChar.image.replace('.png', '_cheer.png')}
@@ -365,7 +367,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
           </div>
         </div>
 
-        {/* ===== 對手區塊：[棋盤] [SidePanel + 下方立繪] ===== */}
+        {/* ===== 對手區塊 ===== */}
         {(mode !== 'practice') && (
           <div className="flex items-start gap-2 opacity-90">
             <div className="relative">
@@ -405,7 +407,6 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
                 accent={oChar?.color || '#ef4444'}
               />
 
-              {/* 對手立繪：SidePanel（分數/消行）的正下方 */}
               {oChar && (
                 <div className="hidden md:block mt-2">
                   <img
@@ -421,9 +422,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
         )}
       </div>
 
-      {/* ======================================================== */}
-      {/* 底部狀態欄：仿 Puyo Puyo 風格，顯示雙方名字與分數            */}
-      {/* ======================================================== */}
+      {/* 底部 Puyo Puyo 風格狀態欄 */}
       <div className="fixed bottom-0 left-0 right-0 z-40 flex h-20 items-center justify-between border-t-4 border-black bg-[#1a1a2e]/95 px-4 md:px-12 font-manga shadow-[0_-4px_20px_rgba(0,0,0,0.8)] backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-full border-2 border-blue-500 bg-blue-900/50 text-xl text-blue-300">
