@@ -79,3 +79,52 @@ export function saveOptions(opts: GameOptions) {
     /* ignore */
   }
 }
+
+// ============================================================
+// 按鍵設定
+// ============================================================
+
+export interface KeyMap {
+  left: string;
+  right: string;
+  softDrop: string;
+  hardDrop: string;
+  rotateCW: string;
+  rotateCCW: string;
+  hold: string;
+  pause: string;
+}
+
+export const DEFAULT_KEYMAP: KeyMap = {
+  left: 'ArrowLeft',
+  right: 'ArrowRight',
+  softDrop: 'ArrowDown',
+  hardDrop: ' ',
+  rotateCW: 'ArrowUp',
+  rotateCCW: 'z',
+  hold: 'c',
+  pause: 'Escape',
+};
+
+const KEYMAP_KEY = 'jgamers_tetris_keymap_v1';
+
+export function loadKeyMap(): KeyMap {
+  try {
+    const raw = localStorage.getItem(KEYMAP_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { ...DEFAULT_KEYMAP, ...parsed };
+    }
+  } catch {
+    /* ignore */
+  }
+  return { ...DEFAULT_KEYMAP };
+}
+
+export function saveKeyMap(map: KeyMap) {
+  try {
+    localStorage.setItem(KEYMAP_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+}
