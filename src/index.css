@@ -419,3 +419,87 @@ div[class*="bg-[#0d0919]"] > .halftone-bg {
     font-size: 0.9rem !important;
   }
 }
+
+/* ======================================================== */
+/* CharacterSelect 頁面放大（與大廳同樣風格）                 */
+/* ======================================================== */
+@media (min-width: 1280px) {
+  /* 用 bg-[#140d24] 精準鎖定 CharacterSelect */
+  div[class*="bg-[#140d24]"] {
+    font-size: 22px !important;
+  }
+
+  /* 返回按鈕 */
+  div[class*="bg-[#140d24]"] > .comic-border {
+    padding: 0.8rem 1.6rem !important;
+    font-size: 1.2rem !important;
+  }
+
+  /* 1P / 2P 角色展示框 */
+  div[class*="bg-[#140d24]"] .comic-border-thick {
+    border-width: 6px !important;
+    box-shadow: 9px 9px 0 #000 !important;
+  }
+
+  /* 1P / 2P 面板內的角色名（GODJJ 等） */
+  div[class*="bg-[#140d24]"] .font-manga.text-xl {
+    font-size: 1.8rem !important;
+  }
+
+  /* 角色能力名稱（連擊加成） */
+  div[class*="bg-[#140d24]"] .font-manga.text-xs.text-cyan-300,
+  div[class*="bg-[#140d24]"] .font-manga.text-xs.text-orange-300 {
+    font-size: 1.1rem !important;
+  }
+
+  /* 特殊能力描述框 */
+  div[class*="bg-[#140d24]"] .comic-border.rounded-xl.bg-black\/50 {
+    padding: 1.5rem 2rem !important;
+  }
+  div[class*="bg-[#140d24]"] .comic-border.rounded-xl.bg-black\/50 .font-manga.text-xs {
+    font-size: 1rem !important;
+  }
+  div[class*="bg-[#140d24]"] .comic-border.rounded-xl.bg-black\/50 .text-sm {
+    font-size: 1.2rem !important;
+  }
+
+  /* 「選擇角色」標題 */
+  div[class*="bg-[#140d24]"] .font-manga.text-lg.text-yellow-300 {
+    font-size: 1.8rem !important;
+  }
+
+  /* 角色選擇按鈕 */
+  div[class*="bg-[#140d24]"] .mt-2.flex.flex-wrap.justify-center.gap-4 > button {
+    padding: 0.8rem !important;
+  }
+
+  /* 角色選擇按鈕內的圖片 */
+  div[class*="bg-[#140d24]"] .mt-2.flex.flex-wrap.justify-center.gap-4 > button img {
+    height: 8rem !important;
+    width: 6.5rem !important;
+  }
+
+  /* 角色選擇按鈕內的名字 */
+  div[class*="bg-[#140d24]"] .mt-2.flex.flex-wrap.justify-center.gap-4 > button .font-manga.text-\[11px\] {
+    font-size: 1rem !important;
+  }
+
+  /* 「確認選擇」按鈕 */
+  div[class*="bg-[#140d24]"] .comic-border-thick.font-manga.text-xl {
+    font-size: 1.8rem !important;
+    padding: 1.2rem 4rem !important;
+  }
+
+  /* VS 徽章 */
+  div[class*="bg-[#140d24]"] .font-manga.comic-border-thick.h-16.w-16 {
+    height: 5rem !important;
+    width: 5rem !important;
+    font-size: 1.8rem !important;
+  }
+
+  /* 1P / 2P 標籤 */
+  div[class*="bg-[#140d24]"] .font-manga.text-lg.text-blue-200,
+  div[class*="bg-[#140d24]"] .font-manga.text-lg.text-red-200 {
+    font-size: 1.4rem !important;
+  }
+}
