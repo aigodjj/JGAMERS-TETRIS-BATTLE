@@ -1,13 +1,12 @@
-import KeyBindings from './KeyBindings';
 import { useState } from 'react';
 import { t, LANG_LABELS, type Lang } from '../i18n';
 import { loadStats, saveStats, type GameStats } from '../engine/storage';
+import KeyBindings from './KeyBindings';
 
 interface Props {
   lang: Lang;
   setLang: (l: Lang) => void;
   onBack: () => void;
-  // 新增這四個 props
   bgmVol: number;
   sfxVol: number;
   setBgmVol: (v: number) => void;
@@ -38,6 +37,7 @@ export default function OptionsScreen({
       </button>
 
       <div className="mx-auto mt-10 max-w-2xl space-y-6">
+        {/* 語言切換 */}
         <div className="comic-border-thick -rotate-1 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-900 p-6">
           <div className="mb-3 font-manga text-xl text-yellow-300">{t(lang, 'language')}</div>
           <div className="flex gap-3">
@@ -55,20 +55,19 @@ export default function OptionsScreen({
           </div>
         </div>
 
-        <div className="comic-border-thick rotate-1 rounded-2xl bg-gradient-to-br from-orange-600 to-red-800 p-6">
-          <div className="mb-2 font-manga text-xl text-yellow-200">{t(lang, 'controls')}</div>
-          <div className="text-sm font-bold text-white/90">{t(lang, 'controlsDesc')}</div>
-        </div>
-
-        {/* 新增：按鍵設定區塊 */}
-        <KeyBindings lang={lang} />
-
-      </div>
-    </div>
-  );
-}
+        {/* 音量控制 */}
+        <div className="comic-border-thick rotate-1 rounded-2xl bg-gradient-to-br from-fuchsia-700 to-purple-900 p-6">
+          <div className="mb-3 font-manga text-xl text-pink-200">{t(lang, 'soundVolume')}</div>
+          <input 
+            type="range" 
+            min={0} 
+            max={1} 
+            step={0.05} 
+            value={sfxVol} 
+            onChange={(e) => setSfxVol(Number(e.target.value))} 
+            className="w-full accent-pink-400" 
           />
-          
+
           <div className="mt-4 mb-3 font-manga text-xl text-pink-200">{t(lang, 'musicVolume')}</div>
           <input 
             type="range" 
@@ -81,6 +80,7 @@ export default function OptionsScreen({
           />
         </div>
 
+        {/* 統計數據 */}
         <div className="comic-border-thick -rotate-1 rounded-2xl bg-gradient-to-br from-blue-700 to-cyan-900 p-6">
           <div className="mb-3 font-manga text-xl text-cyan-200">{t(lang, 'statsTitle')}</div>
           <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
@@ -106,10 +106,15 @@ export default function OptionsScreen({
           </button>
         </div>
 
+        {/* 操作說明 */}
         <div className="comic-border-thick rotate-1 rounded-2xl bg-gradient-to-br from-orange-600 to-red-800 p-6">
           <div className="mb-2 font-manga text-xl text-yellow-200">{t(lang, 'controls')}</div>
           <div className="text-sm font-bold text-white/90">{t(lang, 'controlsDesc')}</div>
         </div>
+
+        {/* 按鍵設定 */}
+        <KeyBindings lang={lang} />
+
       </div>
     </div>
   );
