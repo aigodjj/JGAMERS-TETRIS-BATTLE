@@ -51,6 +51,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
   const [countdown, setCountdown] = useState(3);
   const [myFlash, setMyFlash] = useState(false);
   const [remoteNickname, setRemoteNickname] = useState<string>('');
+  const [ping, setPing] = useState<number | null>(null);
   const finishedRef = useRef(false);
 
   const engineRef = useRef<TetrisEngine | null>(null);
@@ -63,6 +64,7 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
   const pausedRef = useRef(false);
   const countdownRef = useRef(3);
   const keymapRef = useRef(loadKeyMap());
+  const pingTimerRef = useRef<number>(0);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -126,6 +128,13 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
           if (!finishedRef.current) {
             finishMatch('win');
           }
+        } else if (msg.type === 'ping') {
+          // 收到對手的 Ping，立刻回傳 Pong
+          peer?.send({ type: 'pong', timestamp: msg.timestamp });
+        } else if (msg.type === 'pong') {
+          // 收到對手的 Pong，計算延遲
+          const rtt = Date.now() - msg.timestamp;
+          setPing(rtt);
         }
       };
       peer.onDisconnected = () => {
@@ -249,6 +258,14 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
           aiRef.current.update(dt);
         }
         if (mode === 'online' && peer && engine) {
+          // Ping 發送（每 1 秒一次）
+          pingTimerRef.current += dt;
+          if (pingTimerRef.current >= 1000) {
+            pingTimerRef.current = 0;
+            peer.send({ type: 'ping', timestamp: Date.now() });
+          }
+
+          // 狀態同步（每 90ms 一次）
           lastSendRef.current += dt;
           if (lastSendRef.current >= 90) {
             lastSendRef.current = 0;
@@ -435,6 +452,16 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
 
         <div className="flex flex-col items-center justify-center">
           <div className="text-2xl font-bold text-gray-400 md:text-3xl italic">VS</div>
+          {mode === 'online' && (
+            <div className={`mt-1 font-manga text-xs md:text-sm ${
+              ping === null ? 'text-gray-500' :
+              ping < 80 ? 'text-green-400' :
+              ping < 150 ? 'text-yellow-400' :
+              'text-red-400'
+            }`}>
+              {ping === null ? 'PING: ---' : `PING: ${ping}ms`}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
