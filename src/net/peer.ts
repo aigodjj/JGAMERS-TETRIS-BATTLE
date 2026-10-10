@@ -17,10 +17,12 @@ export type NetMessage =
       nextTypes: string[];
       pendingGarbageCount: number;
       gameOver: boolean;
+      nickname?: string;
     }
   | { type: 'attack'; lines: number; holeCols: number[]; hard: boolean }
   | { type: 'gameover'; stats: any }
-  | { type: 'ping' };
+  | { type: 'ping'; timestamp: number }
+  | { type: 'pong'; timestamp: number };
 
 const ROOM_PREFIX = 'jgamers-tetris-';
 
