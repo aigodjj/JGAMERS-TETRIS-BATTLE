@@ -168,14 +168,14 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
       }
       if (pausedRef.current || countdownRef.current > 0) return;
       if (e.repeat && !['ArrowLeft', 'ArrowRight', 'ArrowDown', 's', 'S'].includes(e.key)) return;
-      switch (e.key) {
+            switch (e.key) {
         case 'ArrowLeft':
           engine.setInput('left', true);
-          playMoveSFX();
+          playMoveSFX(); // 加這行
           break;
         case 'ArrowRight':
           engine.setInput('right', true);
-          playMoveSFX();
+          playMoveSFX(); // 加這行
           break;
         case 'ArrowDown':
         case 's':
@@ -183,18 +183,18 @@ export default function GameScreen({ lang, mode, aiDifficulty, peer, playerChar,
           engine.setInput('softDrop', true);
           break;
         case 'ArrowUp':
-          if (!e.repeat) { engine.rotate(1); playRotateSFX(); }
+          if (!e.repeat) { engine.rotate(1); playRotateSFX(); } // 加 playRotateSFX()
           break;
         case 'z':
         case 'Z':
-          if (!e.repeat) { engine.rotate(-1); playRotateSFX(); }
+          if (!e.repeat) { engine.rotate(-1); playRotateSFX(); } // 加 playRotateSFX()
           break;
         case 'c':
         case 'C':
-          if (!e.repeat) { engine.hold(); playHoldSFX(); }
+          if (!e.repeat) { engine.hold(); playHoldSFX(); } // 加 playHoldSFX()
           break;
         case ' ':
-          if (!e.repeat) { engine.hardDrop(); playHardDropSFX(); }
+          if (!e.repeat) { engine.hardDrop(); playHardDropSFX(); } // 加 playHardDropSFX()
           break;
         default:
           break;
