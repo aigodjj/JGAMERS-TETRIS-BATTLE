@@ -1,6 +1,8 @@
 import type { EngineStats } from '../engine/types';
 import { t, type Lang } from '../i18n';
 
+type RematchState = 'idle' | 'waiting' | 'invited' | 'declined';
+
 interface Props {
   lang: Lang;
   outcome: 'win' | 'lose' | 'draw' | null;
@@ -9,6 +11,10 @@ interface Props {
   characterName: string;
   onRematch: () => void;
   onMenu: () => void;
+  isOnline?: boolean;
+  rematchState?: RematchState;
+  onRematchAccept?: () => void;
+  onRematchDecline?: () => void;
 }
 
 function aggregateBreakdown(stats: EngineStats) {
@@ -37,7 +43,18 @@ const COUNTER_ROWS: { key: keyof EngineStats['counters']; labelKey: string }[] =
   { key: 'piecesPlaced', labelKey: 'piecesPlaced' },
 ];
 
-export default function GameOverScreen({ lang, outcome, myStats, characterName, onRematch, onMenu }: Props) {
+export default function GameOverScreen({
+  lang,
+  outcome,
+  myStats,
+  characterName,
+  onRematch,
+  onMenu,
+  isOnline,
+  rematchState = 'idle',
+  onRematchAccept,
+  onRematchDecline,
+}: Props) {
   const breakdown = aggregateBreakdown(myStats);
   const outcomeLabel = outcome === 'win' ? t(lang, 'youWin') : outcome === 'lose' ? t(lang, 'youLose') : outcome === 'draw' ? t(lang, 'draw') : '';
   const outcomeColor = outcome === 'win' ? 'from-yellow-300 to-orange-500' : outcome === 'lose' ? 'from-slate-500 to-slate-800' : 'from-purple-400 to-purple-700';
@@ -89,8 +106,28 @@ export default function GameOverScreen({ lang, outcome, myStats, characterName, 
           </div>
         </div>
 
+        {/* Rematch 狀態提示 */}
+        {isOnline && rematchState === 'waiting' && (
+          <div className="mt-6 mx-auto max-w-md animate-pulse comic-border rounded-xl bg-blue-900/70 px-6 py-4 text-center font-manga">
+            ⏳ 等待對方回應...
+          </div>
+        )}
+        {isOnline && rematchState === 'declined' && (
+          <div className="mt-6 mx-auto max-w-md comic-border rounded-xl bg-red-900/70 px-6 py-4 text-center font-manga">
+            ❌ 對方拒絕了再戰
+          </div>
+        )}
+
         <div className="mt-8 flex justify-center gap-5 pb-10">
-          <button onClick={onRematch} className="comic-border-thick rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 px-8 py-3 font-manga text-lg hover:scale-105 transition-transform">
+          <button
+            onClick={onRematch}
+            disabled={isOnline && rematchState === 'waiting'}
+            className={`comic-border-thick rounded-xl px-8 py-3 font-manga text-lg transition-transform ${
+              isOnline && rematchState === 'waiting'
+                ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                : 'bg-gradient-to-br from-green-400 to-emerald-600 hover:scale-105'
+            }`}
+          >
             🔁 {t(lang, 'rematch')}
           </button>
           <button onClick={onMenu} className="comic-border-thick rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 px-8 py-3 font-manga text-lg hover:scale-105 transition-transform">
@@ -98,6 +135,30 @@ export default function GameOverScreen({ lang, outcome, myStats, characterName, 
           </button>
         </div>
       </div>
+
+      {/* 對方邀請彈窗 */}
+      {isOnline && rematchState === 'invited' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="comic-border-thick animate-pop-in rounded-2xl bg-gradient-to-br from-purple-800 to-indigo-900 p-8 text-center">
+            <div className="font-manga text-2xl text-yellow-300">🔔 對方想再戰一場！</div>
+            <div className="mt-2 font-manga text-sm text-white/70">是否接受挑戰？</div>
+            <div className="mt-6 flex justify-center gap-4">
+              <button
+                onClick={onRematchAccept}
+                className="comic-border rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 px-8 py-3 font-manga text-lg hover:scale-105 transition-transform"
+              >
+                ✅ 接受
+              </button>
+              <button
+                onClick={onRematchDecline}
+                className="comic-border rounded-xl bg-gradient-to-br from-red-500 to-red-700 px-8 py-3 font-manga text-lg hover:scale-105 transition-transform"
+              >
+                ❌ 拒絕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
