@@ -24,8 +24,8 @@ const NORMAL_DROP_BASE_MS = 900;
 
 const COMBO_TABLE = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5];
 
-// 單次攻擊上限，避免一發秒殺
 const MAX_GARBAGE_PER_ATTACK = 8;
+const MAX_MATERIALIZE_PER_LOCK = 2;
 
 interface GarbageEntry {
   lines: number;
@@ -281,7 +281,6 @@ export class TetrisEngine {
     }
     this.events.onHold?.();
 
-    // dingyi：Hold 清除垃圾（削弱版：CD 8 秒，清 1 行）
     if (this.characterId === 'dingyi' && this.holdGarbageCooldown <= 0) {
       const removed = this.removeBottomGarbageRows(1);
       if (removed > 0) {
@@ -361,7 +360,6 @@ export class TetrisEngine {
     return Math.floor(Math.random() * COLS);
   }
 
-  // 削弱版：所有角色的垃圾洞口都固定同一列（不再是 cg1 專屬隨機）
   private computeGarbageEntry(lines: number, hard: boolean): GarbageEntry {
     const holeCols: number[] = [];
     const col = this.randomHoleCol();
@@ -371,7 +369,6 @@ export class TetrisEngine {
 
   receiveGarbage(lines: number, holeCols?: number[], hard = false) {
     if (lines <= 0) return;
-    // 單次接收上限，避免對手一次送超過 8 行
     const cappedLines = Math.min(lines, MAX_GARBAGE_PER_ATTACK);
     const entry: GarbageEntry = {
       lines: cappedLines,
@@ -406,6 +403,8 @@ export class TetrisEngine {
     }
   }
 
+  // 修正：移除 this.current 碰撞檢查，避免「收到垃圾即秒殺」的 bug。
+  // 真正的 top out 檢查交由 spawnNext() 處理。
   private materializeGarbage(entries: GarbageEntry[]) {
     const totalLines = entries.reduce((s, e) => s + e.lines, 0);
     if (totalLines <= 0) return;
@@ -418,10 +417,6 @@ export class TetrisEngine {
       row[hole] = 0;
       this.board.push(row);
       this.garbageRowFlags.push(true);
-    }
-    if (this.current && this.collides(this.current)) {
-      this.gameOver = true;
-      this.events.onTopOut?.();
     }
   }
 
@@ -502,7 +497,6 @@ export class TetrisEngine {
       const tspinScores: Record<number, number> = { 1: isMini ? 200 : 800, 2: 1200, 3: 1600 };
       scoreGained += tspinScores[linesCleared] || 0;
       let gb = linesCleared === 1 ? 2 : linesCleared === 2 ? 4 : 6;
-      // abao：T-Spin 從 +2 削弱為 +1
       if (this.characterId === 'abao') gb += 1;
       garbageBase += gb;
       label = `T-Spin ${linesCleared === 1 ? 'Single' : linesCleared === 2 ? 'Double' : 'Triple'}`;
@@ -516,7 +510,6 @@ export class TetrisEngine {
       const baseGarbage: Record<string, number> = { single: 0, double: 1, triple: 2, tetris: 4 };
       scoreGained += baseScores[clearType];
       garbageBase += baseGarbage[clearType];
-      // cg1：Tetris 從 +2 削弱為 +1
       if (clearType === 'tetris' && this.characterId === 'cg1') garbageBase += 1;
       label = clearType[0].toUpperCase() + clearType.slice(1);
       pushBreak(label, scoreGained, garbageBase);
@@ -524,7 +517,6 @@ export class TetrisEngine {
     }
 
     if (b2bActiveNow && linesCleared > 0) {
-      // B2B 統一 +1（移除 abao 的加倍）
       const b2bBonusGarbage = 1;
       const b2bBonusScore = Math.floor(scoreGained * 0.5);
       scoreGained += b2bBonusScore;
@@ -536,7 +528,6 @@ export class TetrisEngine {
     let comboGarbage = 0;
     if (this.combo > 0) {
       comboGarbage = COMBO_TABLE[Math.min(this.combo, COMBO_TABLE.length - 1)];
-      // godjj：連擊從 ×1.5 削弱為 ×1.2
       if (this.characterId === 'godjj') comboGarbage = Math.round(comboGarbage * 1.2);
       const comboScore = 50 * this.combo;
       scoreGained += comboScore;
@@ -544,7 +535,6 @@ export class TetrisEngine {
       pushBreak(`Combo x${this.combo}`, comboScore, comboGarbage);
     }
 
-    // 移除硬核垃圾（godjj 的 Combo Storm Burst 已刪除）
     const hardGarbage = 0;
 
     if (perfectClear) {
@@ -562,7 +552,6 @@ export class TetrisEngine {
     this.piecesPlaced++;
     this.stats.counters.piecesPlaced++;
 
-    // daikai4104：從清 2 行削弱為清 1 行
     if (this.characterId === 'daikai4104' && (clearType === 'tetris' || isTspin)) {
       this.selfRepair(1);
     }
@@ -571,12 +560,10 @@ export class TetrisEngine {
     let result: AttackResult | null = null;
     if (garbageBase > 0) {
       let cancelAmount = garbageBase;
-      // dingyi：抵消效率從 +30% 削弱為 +15%
       if (this.characterId === 'dingyi') cancelAmount = Math.round(cancelAmount * 1.15);
       const pending = this.totalPendingNormal();
       const actuallyCanceled = Math.min(pending, cancelAmount);
       this.cancelPendingIncoming(actuallyCanceled);
-      // 單次攻擊上限 8 行
       const toOpponent = Math.min(Math.max(0, garbageBase - actuallyCanceled), MAX_GARBAGE_PER_ATTACK);
       if (toOpponent > 0) {
         const entry = this.computeGarbageEntry(toOpponent, false);
@@ -585,13 +572,51 @@ export class TetrisEngine {
         this.events.onAttack?.(toOpponent, entry.holeCols, false);
       }
     } else if (linesCleared === 0) {
+      // 修正：分批物化，每次沒消行最多砸 MAX_MATERIALIZE_PER_LOCK 行（2 行）
       if (this.pendingHardIncoming.length > 0) {
-        this.materializeGarbage(this.pendingHardIncoming);
-        this.pendingHardIncoming = [];
+        let remaining = MAX_MATERIALIZE_PER_LOCK;
+        const batch: GarbageEntry[] = [];
+        while (remaining > 0 && this.pendingHardIncoming.length > 0) {
+          const first = this.pendingHardIncoming[0];
+          if (first.lines <= remaining) {
+            batch.push(first);
+            remaining -= first.lines;
+            this.pendingHardIncoming.shift();
+          } else {
+            batch.push({
+              lines: remaining,
+              holeCols: first.holeCols.slice(0, remaining),
+              hard: first.hard,
+            });
+            first.lines -= remaining;
+            first.holeCols = first.holeCols.slice(remaining);
+            remaining = 0;
+          }
+        }
+        if (batch.length > 0) this.materializeGarbage(batch);
       }
+
       if (this.pendingIncoming.length > 0) {
-        this.materializeGarbage(this.pendingIncoming);
-        this.pendingIncoming = [];
+        let remaining = MAX_MATERIALIZE_PER_LOCK;
+        const batch: GarbageEntry[] = [];
+        while (remaining > 0 && this.pendingIncoming.length > 0) {
+          const first = this.pendingIncoming[0];
+          if (first.lines <= remaining) {
+            batch.push(first);
+            remaining -= first.lines;
+            this.pendingIncoming.shift();
+          } else {
+            batch.push({
+              lines: remaining,
+              holeCols: first.holeCols.slice(0, remaining),
+              hard: first.hard,
+            });
+            first.lines -= remaining;
+            first.holeCols = first.holeCols.slice(remaining);
+            remaining = 0;
+          }
+        }
+        if (batch.length > 0) this.materializeGarbage(batch);
       }
     }
 
