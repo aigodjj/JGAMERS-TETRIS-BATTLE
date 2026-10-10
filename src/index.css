@@ -1,0 +1,296 @@
+/* 新增 Zen Maru Gothic 支援繁體中文 */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Luckiest+Guy&family=ZCOOL+KuaiLe&family=Zen+Maru+Gothic:wght@700;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* 優先順序：英文漫畫體 -> 簡體快樂體 -> 繁體圓體 -> 基礎字體 */
+  --font-comic: 'Luckiest Guy', 'ZCOOL KuaiLe', 'Zen Maru Gothic', 'Baloo 2', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-comic);
+  background: #0b0b14;
+}
+
+.font-manga {
+  font-family: 'Luckiest Guy', 'ZCOOL KuaiLe', 'Zen Maru Gothic', var(--font-comic), sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.halftone-bg {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1.4px, transparent 1.4px);
+  background-size: 10px 10px;
+}
+
+.halftone-bg-light {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.5) 1.4px, transparent 1.4px);
+  background-size: 9px 9px;
+}
+
+.comic-border {
+  border: 4px solid #111;
+  box-shadow: 6px 6px 0 #111;
+}
+
+.comic-border-thick {
+  border: 5px solid #111;
+  box-shadow: 8px 8px 0 #111, 0 0 0 2px rgba(255,255,255,0.4) inset;
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+  70% { transform: scale(1.05) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-pop-in {
+  animation: pop-in 0.45s cubic-bezier(.25,1.6,.4,1) both;
+}
+
+@keyframes speedlines {
+  0% { background-position: 0 0; }
+  100% { background-position: 200px 0; }
+}
+
+@keyframes flash-attack {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(2.2); }
+}
+.animate-flash-attack {
+  animation: flash-attack 0.3s ease-in-out 2;
+}
+
+@keyframes shake-sm {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.animate-shake-sm {
+  animation: shake-sm 0.25s linear;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #555; border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* 假設你的圖片檔名是 bg-lobby.jpg */
+.lobby-container {
+  /* 改成這樣！以斜線開頭，代表 public 資料夾的根目錄 */
+  background-image: url('/images/bg_lobby.jpg'); 
+  background-size: cover;        
+  background-position: center;   
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);           
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ======================================================== */
+/* 追加代碼：強制覆蓋 MainMenu 大廳背景（不改動 React 代碼） */
+/* ======================================================== */
+
+/* 1. 利用獨有的 bg-[#1a1530] 類別精準鎖定大廳最外層，並套用你的背景圖 */
+div[class*="bg-[#1a1530]"] {
+  background-image: url('/images/bg_lobby.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* 2. 讓原本蓋在背景上的深色漸層 (radial-gradient) 變成透明，否則它會擋住你的圖片 */
+div[class*="bg-[#1a1530]"] > div.absolute.inset-0[style*="radial-gradient"] {
+  background: transparent !important;
+}
+
+/* 3. 降低原本的半調網點 (halftone) 透明度，讓背景圖更清晰 (原代碼是 opacity-60) */
+div[class*="bg-[#1a1530]"] > .halftone-bg {
+  opacity: 0.15 !important;
+}
+
+/* 4. 降低放射線條圖層的透明度，避免背景太花 (原代碼是 opacity-20) */
+div[class*="bg-[#1a1530]"] > div.pointer-events-none.absolute.inset-0.opacity-20 {
+  opacity: 0.05 !important;
+}
+
+/* ======================================================== */
+/* 追加代碼：讓大廳的浮動角色立繪更顯眼                        */
+/* ======================================================== */
+
+/* 精準鎖定大廳容器內，帶有 pointer-events-none 的浮動人物圖層 */
+div[class*="bg-[#1a1530]"] div.pointer-events-none img {
+  /* 1. 將原本 20% 的透明度大幅提升到 90%，讓角色清晰可見 */
+  opacity: 0.9 !important;
+  
+  /* 2. 移除原本灰暗的濾鏡，改加上強烈的深色陰影與對比，讓人物從花俏的背景中浮現 */
+  filter: drop-shadow(0px 15px 25px rgba(0, 0, 0, 0.85)) contrast(1.1) brightness(1.1) !important;
+  
+  /* 3. 確保人物圖層疊在背景之上 */
+  z-index: 5 !important; 
+}
+
+/* ======================================================== */
+/* 追加代碼：替換選角頁面背景 (CharacterSelect)              */
+/* ======================================================== */
+
+/* 1. 精準鎖定選角頁面最外層的深色背景類別 */
+div[class*="bg-[#140d24]"] {
+  /* 注意：如果你的圖片是 .png，請改成 '/images/bg_charselect.png' */
+  background-image: url('/images/bg_charselect.jpg') !important; 
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important; /* 移除原本的深色底色 */
+}
+
+/* 2. 因為背景圖細節豐富，我們強制關閉原本的半調網點 (halftone-bg) */
+/* 這樣才不會讓粉彩背景看起來髒髒的 */
+div[class*="bg-[#140d24]"].halftone-bg {
+  background-image: url('/images/bg_charselect.jpg') !important; 
+  /* 上面這行確保圖片蓋過網點，如果你希望保留一點點網點，可以改用 opacity: 0.1 */
+}
+
+/* (選用) 讓選角框變成微透明，更融入粉彩背景 */
+div[class*="bg-[#140d24]"] .comic-border-thick {
+  background-color: rgba(0, 0, 0, 0.4) !important; /* 加上半透明黑底 */
+  backdrop-filter: blur(8px) !important;         /* 毛玻璃效果 */
+}
+
+/* ======================================================== */
+/* 追加代碼：替換線上多人大廳背景 (OnlineLobby)              */
+/* ======================================================== */
+
+/* 1. 精準鎖定線上大廳最外層的深色背景類別 */
+div[class*="bg-[#101225]"] {
+  /* ⚠️ 請將下方的 bg_online.jpg 替換成你實際的圖片檔名 */
+  /* 例如：如果你沒有做新圖，想沿用大廳圖，就改成 /images/bg_lobby.jpg */
+  background-image: url('/images/bg_lobby.jpg') !important; 
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important; 
+}
+
+/* 2. 強制關閉原本的半調網點 (halftone-bg)，避免畫面太雜 */
+div[class*="bg-[#101225]"].halftone-bg {
+  background-image: url('/images/bg_lobby.jpg') !important;
+}
+
+/* (選用) 3. 讓大廳的深色卡片變成微透明毛玻璃，更融入背景圖 */
+div[class*="bg-[#101225]"] .comic-border-thick {
+  backdrop-filter: blur(10px) !important;
+  background-color: rgba(0, 0, 0, 0.4) !important; /* 讓深色框框稍微透出背景 */
+}
+
+/* ======================================================== */
+/* 追加代碼：替換遊戲內背景 (GameScreen)                    */
+/* ======================================================== */
+
+/* 1. 精準鎖定遊戲畫面最外層的深色背景類別 */
+div[class*="bg-[#0d0919]"] {
+  /* ⚠️ 確認你的圖片檔名是 .jpg 還是 .png，這裡預設為 .jpg */
+  background-image: url('/images/bg_game.jpg') !important; 
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important; 
+}
+
+/* 2. 遊戲畫面原本有一層 halftone-bg (半調網點)，為了不讓它蓋住你精心設計的霓虹網格背景，我們把它調到極淡 */
+div[class*="bg-[#0d0919]"] > .halftone-bg {
+  opacity: 0.05 !important; 
+}
+
+/* ======================================================== */
+/* 最終定案：精準隔離大廳放大效果，避免影響其他頁面          */
+/* ======================================================== */
+
+@media (min-width: 1280px) {
+  
+  /* 使用 :has() 精準鎖定「有大廳按鈕」的頁面才套用放大設定 */
+  /* 大廳的按鈕容器有 .mt-16.flex.flex-1 這個特徵 */
+  
+  /* 1. 基礎字體放大：只在大廳頁面生效 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) {
+    font-size: 24px !important;
+  }
+
+  /* 2. 左上方 Logo：只在大廳頁面放大 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .flex.w-full.max-w-6xl > div:first-child {
+    transform: scale(1.5) !important;
+    transform-origin: top left !important;
+    margin-top: 2vh !important;
+    margin-left: 2vw !important;
+  }
+
+  /* 3. 右上方語言列：只在大廳頁面放大 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .flex.w-full.max-w-6xl > div:last-child {
+    transform: scale(1.5) !important;
+    transform-origin: top right !important;
+    margin-top: 2vh !important;
+    margin-right: 2vw !important;
+  }
+
+  /* 4. 中間按鈕容器：只在大廳頁面生效 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .mt-16.flex.flex-1 {
+    gap: 4rem !important;
+    margin-top: 5vh !important;
+    padding-bottom: 15vh !important;
+    align-items: center !important;
+  }
+
+  /* 5. 按鈕包裹層：只在大廳頁面生效 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .mt-16.flex.flex-1 > div {
+    flex: 1 1 0 !important;
+    max-width: 550px !important;
+  }
+
+  /* 6. 大廳按鈕本體：只在大廳頁面生效 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick {
+    width: 100% !important;
+    padding: 3.5rem 4rem !important;
+    min-width: 400px !important;
+    border-width: 8px !important;
+    box-shadow: 12px 12px 0 #000 !important;
+    filter: saturate(1.5) contrast(1.15) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* 7. 移除大廳按鈕的文字陰影 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick * {
+    text-shadow: none !important;
+  }
+
+   /* 8. 暴力放大按鈕內「所有」文字，並強制加粗、不換行 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick > div {
+    font-size: 12rem !important;        /* 超大字體，填滿按鈕 */
+    font-weight: 900 !important;         /* 極致加粗 */
+    white-space: nowrap !important;      /* 絕對不許斷行 */
+    text-shadow: none !important;        /* 保持無陰影 */
+    line-height: 1.2 !important;         /* 避免字體放大後行高太高 */
+    margin-bottom: 0.5rem !important;    /* 拉開主副標題距離 */
+  }
+
+  /* 9. 針對按鈕內的副標題或小字稍微縮小一點，形成主次對比 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick > div:last-child {
+    font-size: 1.8rem !important;        /* 副標題尺寸 */
+  }
+
+    /* 10. 大廳底部立繪放大 */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) div[class*="pointer-events-none"] img {
+    height: clamp(350px, 48vh, 550px) !important;
+    bottom: -20px !important;
+    opacity: 0.95 !important;
+  }
+}
