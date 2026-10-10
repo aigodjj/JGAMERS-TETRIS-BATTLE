@@ -300,3 +300,28 @@ div[class*="bg-[#0d0919]"] > .halftone-bg {
     opacity: 0.95 !important;
   }
 }
+
+/* ======================================================== */
+/* 大廳按鈕文字放大（只放大文字，不改按鈕排版）               */
+/* ======================================================== */
+
+@media (min-width: 1280px) {
+  
+  /* 1. 按鈕主標題放大（單人 / 對戰AI 這行） */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick .font-manga.text-xl {
+    font-size: 3rem !important;
+    line-height: 1.1 !important;
+    font-weight: 900 !important;
+  }
+  
+  /* 2. 按鈕描述文字放大（練習模式與挑戰 AI 這行） */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick .mt-1.text-xs {
+    font-size: 1.4rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  /* 3. 圖示也順便放大（🎮 🌐 ⚙️ 這三個 emoji） */
+  div[class*="bg-[#1a1530]"]:has(.mt-16.flex.flex-1) .comic-border-thick .text-4xl {
+    font-size: 3.5rem !important;
+  }
+}
