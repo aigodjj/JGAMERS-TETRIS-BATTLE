@@ -1,3 +1,4 @@
+import KeyBindings from './KeyBindings';
 import { useState } from 'react';
 import { t, LANG_LABELS, type Lang } from '../i18n';
 import { loadStats, saveStats, type GameStats } from '../engine/storage';
@@ -54,16 +55,18 @@ export default function OptionsScreen({
           </div>
         </div>
 
-        <div className="comic-border-thick rotate-1 rounded-2xl bg-gradient-to-br from-fuchsia-700 to-purple-900 p-6">
-          <div className="mb-3 font-manga text-xl text-pink-200">{t(lang, 'soundVolume')}</div>
-          <input 
-            type="range" 
-            min={0} 
-            max={1} 
-            step={0.05} 
-            value={sfxVol} 
-            onChange={(e) => setSfxVol(Number(e.target.value))} 
-            className="w-full accent-pink-400" 
+        <div className="comic-border-thick rotate-1 rounded-2xl bg-gradient-to-br from-orange-600 to-red-800 p-6">
+          <div className="mb-2 font-manga text-xl text-yellow-200">{t(lang, 'controls')}</div>
+          <div className="text-sm font-bold text-white/90">{t(lang, 'controlsDesc')}</div>
+        </div>
+
+        {/* 新增：按鍵設定區塊 */}
+        <KeyBindings lang={lang} />
+
+      </div>
+    </div>
+  );
+}
           />
           
           <div className="mt-4 mb-3 font-manga text-xl text-pink-200">{t(lang, 'musicVolume')}</div>
