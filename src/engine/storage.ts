@@ -96,24 +96,43 @@ export interface KeyMap {
 }
 
 export const DEFAULT_KEYMAP: KeyMap = {
-  left: 'ArrowLeft',
-  right: 'ArrowRight',
-  softDrop: 'ArrowDown',
+  // Keep key values in the same canonical format as KeyboardEvent.key.toLowerCase().
+  left: 'arrowleft',
+  right: 'arrowright',
+  softDrop: 'arrowdown',
   hardDrop: ' ',
-  rotateCW: 'ArrowUp',
+  rotateCW: 'arrowup',
   rotateCCW: 'z',
   hold: 'c',
-  pause: 'Escape',
+  pause: 'escape',
 };
 
 const KEYMAP_KEY = 'jgamers_tetris_keymap_v1';
+
+function normalizeStoredKey(key: unknown, fallback: string): string {
+  if (typeof key !== 'string') return fallback;
+  // Space is represented by a single space in KeyboardEvent.key.
+  return key === ' ' ? ' ' : key.toLowerCase();
+}
 
 export function loadKeyMap(): KeyMap {
   try {
     const raw = localStorage.getItem(KEYMAP_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      return { ...DEFAULT_KEYMAP, ...parsed };
+      const parsed = JSON.parse(raw) as Partial<KeyMap>;
+      const merged = { ...DEFAULT_KEYMAP, ...parsed };
+      // Older versions could save values like "ArrowLeft" and "Escape".
+      // Normalize on every load so gameplay works even if Options was never opened.
+      return {
+        left: normalizeStoredKey(merged.left, DEFAULT_KEYMAP.left),
+        right: normalizeStoredKey(merged.right, DEFAULT_KEYMAP.right),
+        softDrop: normalizeStoredKey(merged.softDrop, DEFAULT_KEYMAP.softDrop),
+        hardDrop: normalizeStoredKey(merged.hardDrop, DEFAULT_KEYMAP.hardDrop),
+        rotateCW: normalizeStoredKey(merged.rotateCW, DEFAULT_KEYMAP.rotateCW),
+        rotateCCW: normalizeStoredKey(merged.rotateCCW, DEFAULT_KEYMAP.rotateCCW),
+        hold: normalizeStoredKey(merged.hold, DEFAULT_KEYMAP.hold),
+        pause: normalizeStoredKey(merged.pause, DEFAULT_KEYMAP.pause),
+      };
     }
   } catch {
     /* ignore */
